@@ -1,0 +1,12 @@
+{
+  "name": "kiranabook-pwa",
+  "version": "4.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node tools/check-syntax.cjs",
+    "test:upi": "node tools/test-upi.cjs",
+    "dev:upi-qr": "node tools/dev-upi-qr.cjs",
+    "serve": "node tools/dev-server.cjs"
+  }
+}

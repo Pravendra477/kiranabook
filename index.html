@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f4c35">
+  <meta name="description" content="KiranaBook v4.2 - Kirana store management PWA">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KiranaBook">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' 'unsafe-inline' blob: data:;
+    script-src 'self' 'unsafe-inline' blob: https://accounts.google.com https://www.gstatic.com;
+    connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    frame-src https://accounts.google.com;
+  ">
+  <title>KiranaBook</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="sr-only" id="ariaLive" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="splash" id="splash" role="status" aria-label="Loading KiranaBook">
+    <div class="splash-logo" aria-hidden="true">🏪</div>
+    <div class="splash-name">KiranaBook</div>
+    <div class="splash-sub">Professional Store Management · v4.2</div>
+    <div class="splash-bar"><div class="splash-fill"></div></div>
+  </div>
+
+  <div class="pin-screen hidden" id="pinScreen" role="dialog" aria-modal="true" aria-label="PIN Authentication">
+    <div class="pin-logo" aria-hidden="true">🔐</div>
+    <div class="pin-title">Enter PIN</div>
+    <div class="pin-sub" id="pinSubtitle">Enter your 4-digit PIN to continue</div>
+    <div class="pin-dots" id="pinDots" aria-label="PIN entry progress" role="group">
+      <div class="pin-dot" id="d0" aria-hidden="true"></div>
+      <div class="pin-dot" id="d1" aria-hidden="true"></div>
+      <div class="pin-dot" id="d2" aria-hidden="true"></div>
+      <div class="pin-dot" id="d3" aria-hidden="true"></div>
+    </div>
+    <div id="pinLockoutMsg" class="pin-lockout" role="alert"></div>
+    <div class="pin-pad" id="pinPad" role="group" aria-label="PIN keypad">
+      <button class="pin-btn" data-pin="1" aria-label="1">1</button>
+      <button class="pin-btn" data-pin="2" aria-label="2">2</button>
+      <button class="pin-btn" data-pin="3" aria-label="3">3</button>
+      <button class="pin-btn" data-pin="4" aria-label="4">4</button>
+      <button class="pin-btn" data-pin="5" aria-label="5">5</button>
+      <button class="pin-btn" data-pin="6" aria-label="6">6</button>
+      <button class="pin-btn" data-pin="7" aria-label="7">7</button>
+      <button class="pin-btn" data-pin="8" aria-label="8">8</button>
+      <button class="pin-btn" data-pin="9" aria-label="9">9</button>
+      <button class="pin-btn pin-spacer" aria-hidden="true" tabindex="-1"></button>
+      <button class="pin-btn" data-pin="0" aria-label="0">0</button>
+      <button class="pin-btn" id="pinDelBtn" aria-label="Delete last digit">⌫</button>
+    </div>
+    <div class="pin-hint" id="pinSkipBtn" role="button" tabindex="0" aria-label="Skip PIN for now">Skip for now →</div>
+  </div>
+
+  <div class="toast-container" id="toastContainer" aria-live="assertive" aria-atomic="false"></div>
+
+  <div class="confirm-overlay" id="confirmOverlay" role="alertdialog" aria-modal="true">
+    <div class="confirm-dialog">
+      <div class="confirm-icon" id="confirmIcon">⚠️</div>
+      <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+      <div class="confirm-msg" id="confirmMsg"></div>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+        <button class="btn btn-danger" id="confirmOk">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="root">
+    <div class="update-banner" id="updateBanner">
+      <span class="banner-icon" aria-hidden="true">🔄</span>
+      <span class="update-banner-text">App update available</span>
+      <button class="btn btn-sm btn-primary" id="updateBtn">Update Now</button>
+      <button class="btn btn-sm btn-ghost" id="updateDismiss" aria-label="Dismiss update">✕</button>
+    </div>
+    <div class="install-banner" id="installBanner">
+      <span class="banner-icon" aria-hidden="true">📲</span>
+      <span class="install-banner-text">Install KiranaBook for offline use</span>
+      <button class="btn btn-sm btn-primary" id="installBtn">Install</button>
+      <button class="btn btn-sm btn-ghost" id="installDismiss" aria-label="Dismiss install prompt">✕</button>
+    </div>
+
+    <header class="app-header" id="appHeader" role="banner">
+      <button class="header-logo-badge" id="logoBtn" aria-label="Settings" title="Settings">🏪</button>
+      <div class="app-header-title" id="pageTitle">KiranaBook</div>
+      <div class="header-actions">
+        <button class="header-btn" id="syncBtn" title="Sync data" aria-label="Sync data">☁️</button>
+        <button class="header-btn" id="searchGlobalBtn" title="Search everything" aria-label="Search everything">🔍</button>
+        <button class="header-btn" id="notifBtn" title="Notifications" aria-label="Notifications">
+          🔔<span class="notif-badge hidden" id="notifBadge" aria-hidden="true"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="sync-bar" id="syncBar" role="status" aria-label="Sync status">
+      <div class="sync-dot" id="syncDot" aria-hidden="true"></div>
+      <span id="syncStatus" class="sync-label">Offline</span>
+      <span class="last-sync" id="lastSyncTime"></span>
+      <div class="sync-progress" id="syncProgress"></div>
+    </div>
+
+    <main class="page-content" id="pageContent" tabindex="-1"></main>
+
+    <nav class="bottom-nav" id="bottomNav" role="navigation" aria-label="Main navigation">
+      <button class="nav-item active" data-page="home" id="nav-home" aria-label="Home" aria-current="page">
+        <span class="nav-item-icon" aria-hidden="true">🏠</span><span class="nav-item-label">Home</span>
+      </button>
+      <button class="nav-item" data-page="billing" id="nav-billing" aria-label="Billing">
+        <span class="nav-item-icon" aria-hidden="true">🧾</span><span class="nav-item-label">Billing</span>
+      </button>
+      <button class="nav-item" data-page="inventory" id="nav-inventory" aria-label="Inventory">
+        <span class="nav-item-icon" aria-hidden="true">📦</span><span class="nav-item-label">Stock</span>
+      </button>
+      <button class="nav-item" data-page="customers" id="nav-customers" aria-label="Customers and Udhar">
+        <span class="nav-item-icon" aria-hidden="true">👥</span><span class="nav-item-label">Udhar</span>
+      </button>
+      <button class="nav-item" data-page="analytics" id="nav-analytics" aria-label="Reports">
+        <span class="nav-item-icon" aria-hidden="true">📊</span><span class="nav-item-label">Reports</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-label="Dialog">
+    <div class="modal-sheet" id="modalSheet">
+      <div class="modal-handle" aria-hidden="true"></div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script async defer src="https://accounts.google.com/gsi/client" id="gsiScript"></script>
+  <script type="module" src="js/core/app.js"></script>
+</body>
+</html>
